@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	glog "google.golang.org/grpc/grpclog"
-	lpb "learningGo/proto"
+	lpb "grpchat/proto"
 	"log"
 	"net"
 	"os"

@@ -1,7 +1,7 @@
 syntax = "proto2";
 
 package proto;
-option go_package = "learningGo/proto";
+option go_package = "grpchat/proto";
 message User {
   required string id = 1;
   required string name = 2;

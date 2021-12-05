@@ -1,4 +1,4 @@
-module learningGo
+module grpchat
 
 go 1.17
 

@@ -8,7 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
-	lpb "learningGo/proto"
+	lpb "grpchat/proto"
 	"log"
 	"os"
 	"sync"

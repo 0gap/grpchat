@@ -4,7 +4,7 @@ ENV GO111MODULE=on
 
 RUN apk update && apk add bash ca-certificates git gcc g++ libc-dev
 
-RUN mkdir -p /learningGo/proto
+RUN mkdir -p /grpchat/proto
 
 WORKDIR /learningGo
 
@@ -17,6 +17,6 @@ COPY go.sum .
 
 RUN go mod download
 
-RUN go build -o learningGo .
+RUN go build -o grpchat .
 
 CMD ./learningGo -port 8080
