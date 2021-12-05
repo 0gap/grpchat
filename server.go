@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	grpcLog     glog.LoggerV2
-	server_port = flag.Int("port", 50051, "The server port")
+	grpcLog    glog.LoggerV2
+	serverPort = flag.Int("port", 50051, "The server port")
 )
 
 func init() {
@@ -34,9 +34,9 @@ type Server struct {
 	Connections []*Connection
 }
 
-func (s *Server) CreateStream(pconn *lpb.Connect, stream lpb.Broadcast_CreateStreamServer) error {
+func (s *Server) CreateStream(protoConn *lpb.Connect, stream lpb.Broadcast_CreateStreamServer) error {
 	conn := &Connection{
-		stream, *pconn.User.Id, true, make(chan error),
+		stream, *protoConn.User.Id, true, make(chan error),
 	}
 	s.Connections = append(s.Connections, conn)
 	return <-conn.error
@@ -44,7 +44,7 @@ func (s *Server) CreateStream(pconn *lpb.Connect, stream lpb.Broadcast_CreateStr
 
 func (s *Server) BroadcastMessage(ctx context.Context, msg *lpb.Message) (*lpb.Close, error) {
 	wait := sync.WaitGroup{}
-	done_chan := make(chan int)
+	doneChan := make(chan int)
 
 	for _, conn := range s.Connections {
 		wait.Add(1)
@@ -64,16 +64,16 @@ func (s *Server) BroadcastMessage(ctx context.Context, msg *lpb.Message) (*lpb.C
 	}
 	go func() {
 		wait.Wait()
-		close(done_chan)
+		close(doneChan)
 	}()
-	<-done_chan
+	<-doneChan
 	return &lpb.Close{}, nil
 }
 
 func main() {
 	var connections []*Connection
 	flag.Parse()
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *server_port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *serverPort))
 	if err != nil {
 		log.Fatalf("error creating the server %v", err)
 	}
@@ -82,7 +82,7 @@ func main() {
 	server.Connections = connections
 
 	lpb.RegisterBroadcastServer(grpcServer, server)
-	grpcLog.Info("Starting server at :", *server_port)
+	grpcLog.Info("Starting server at :", *serverPort)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

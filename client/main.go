@@ -31,7 +31,7 @@ func connect(user *lpb.User) error {
 		User: user, Active: &active,
 	})
 	if err != nil {
-		return fmt.Errorf("Connaction failed: %v", err)
+		return fmt.Errorf("connaction failed: %v", err)
 	}
 
 	wait.Add(1)
@@ -45,7 +45,7 @@ func connect(user *lpb.User) error {
 				streamerror = fmt.Errorf("error receiving msg: %v", err)
 				break
 			}
-			fmt.Printf("Received %v from user %d\n", *msg.Content, *msg.Id)
+			fmt.Printf("Received %v from user %s\n", *msg.Content, *msg.Id)
 		}
 	}(stream)
 	return streamerror
@@ -53,7 +53,7 @@ func connect(user *lpb.User) error {
 
 func main() {
 	timestamp := time.Now()
-	done_chan := make(chan int)
+	doneChan := make(chan int)
 
 	name := flag.String("n", "panos", "The name of the user sending")
 	flag.Parse()
@@ -66,12 +66,15 @@ func main() {
 	}
 
 	client = lpb.NewBroadcastClient(conn)
-	hxid := hex.EncodeToString(id[:])
+	hexId := hex.EncodeToString(id[:])
 	user := &lpb.User{
-		Id:   &hxid,
+		Id:   &hexId,
 		Name: name,
 	}
-	connect(user)
+	err = connect(user)
+	if err != nil {
+		return
+	}
 
 	wait.Add(1)
 
@@ -93,8 +96,8 @@ func main() {
 
 	go func() {
 		wait.Wait()
-		close(done_chan)
+		close(doneChan)
 	}()
 
-	<-done_chan
+	<-doneChan
 }
