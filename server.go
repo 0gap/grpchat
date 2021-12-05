@@ -31,14 +31,14 @@ type Connection struct {
 
 type Server struct {
 	lpb.UnimplementedBroadcastServer
-	Connection []*Connection
+	Connections []*Connection
 }
 
 func (s *Server) CreateStream(pconn *lpb.Connect, stream lpb.Broadcast_CreateStreamServer) error {
 	conn := &Connection{
 		stream, *pconn.User.Id, true, make(chan error),
 	}
-	s.Connection = append(s.Connection, conn)
+	s.Connections = append(s.Connections, conn)
 	return <-conn.error
 }
 
@@ -46,7 +46,7 @@ func (s *Server) BroadcastMessage(ctx context.Context, msg *lpb.Message) (*lpb.C
 	wait := sync.WaitGroup{}
 	done_chan := make(chan int)
 
-	for _, conn := range s.Connection {
+	for _, conn := range s.Connections {
 		wait.Add(1)
 
 		go func(msg *lpb.Message, conn *Connection) {
@@ -79,7 +79,7 @@ func main() {
 	}
 	grpcServer := grpc.NewServer()
 	server := &Server{}
-	server.Connection = connections
+	server.Connections = connections
 
 	lpb.RegisterBroadcastServer(grpcServer, server)
 	grpcLog.Info("Starting server at :", *server_port)
