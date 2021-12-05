@@ -42,7 +42,7 @@ func (s *Server) CreateStream(protoConn *lpb.Connect, stream lpb.Broadcast_Creat
 	return <-conn.error
 }
 
-func (s *Server) BroadcastMessage(ctx context.Context, msg *lpb.Message) (*lpb.Close, error) {
+func (s *Server) BroadcastMessage(_ context.Context, msg *lpb.Message) (*lpb.Close, error) {
 	wait := sync.WaitGroup{}
 	doneChan := make(chan int)
 
