@@ -27,7 +27,7 @@ type ChatUser struct {
 
 var (
 	grpcLog         glog.LoggerV2
-	serverPort      = flag.Int("port", 50051, "The server port")
+	serverPort      = flag.Int("p", 50051, "The server port")
 	chatRooms       map[string]ChatRoom
 	users           map[string]ChatUser
 	users2ChatRooms map[string][]string
@@ -73,6 +73,7 @@ func (s *Server) CreateChatRoom(_ context.Context, req *lpb.CreateChatReq) (*lpb
 		chatRooms[req.ChatName] = ChatRoom{id, req.ChatName}
 		users2ChatRooms[req.User.Name] = append(users2ChatRooms[req.User.Name], req.ChatName)
 		chatIdStr = append(chatIdStr, req.ChatName)
+		fmt.Printf("User %s created chat room %s", req.User.Name, req.ChatName)
 	}
 	return &lpb.GetChatResp{ChatNames: chatIdStr}, nil
 }
@@ -81,7 +82,7 @@ func (s *Server) CreateStream(protoConn *lpb.Connect, stream lpb.Broadcast_Creat
 	conn := &Connection{
 		stream, protoConn.User.Id, true, make(chan error),
 	}
-	fmt.Printf("CreateStream from user: %v", protoConn.User.Name)
+	fmt.Printf("CreateStream from user: %s\n", protoConn.User.Name)
 	s.Connections = append(s.Connections, conn)
 	return <-conn.error
 }
@@ -97,7 +98,7 @@ func (s *Server) BroadcastMessage(_ context.Context, msg *lpb.Message) (*lpb.Clo
 			defer wait.Done()
 			if conn.active {
 				err := conn.stream.Send(msg)
-				grpcLog.Info("Sending msg with user id ", msg.Id, " to: ", conn.stream)
+				grpcLog.Info("Sending msg with user id ", msg.Id, " in chat room ", msg.ChatName, " to: ", conn.stream)
 				if err != nil {
 					grpcLog.Error("Error with Stream: %s - Error: %v", conn.stream, err)
 					conn.active = false

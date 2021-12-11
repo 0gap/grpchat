@@ -11,6 +11,7 @@ message Message {
   string id = 1;
   string content = 2;
   string timestamp = 3;
+  string chat_name = 4;
 }
 
 message CreateChatReq {
