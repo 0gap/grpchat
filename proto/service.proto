@@ -1,26 +1,37 @@
-syntax = "proto2";
+syntax = "proto3";
 
 package proto;
 option go_package = "grpchat/proto";
 message User {
-  required string id = 1;
-  required string name = 2;
+  string id = 1;
+  string name = 2;
 }
 
 message Message {
-  required string id = 1;
-  required string content = 2;
-  required string timestamp = 3;
+  string id = 1;
+  string content = 2;
+  string timestamp = 3;
+}
+
+message CreateChatReq {
+  string chat_name = 1;
+  User user = 2;
+}
+
+message GetChatResp {
+  repeated string chatNames = 1;
 }
 
 message Connect {
-  required User user = 1;
-  required bool active = 2;
+  User user = 1;
+  bool active = 2;
 }
 
 message Close{}
 
 service Broadcast {
+  rpc CreateChatRoom(CreateChatReq) returns (GetChatResp); // Empty on error. The room id on OK.
+  rpc GetChatRooms(User) returns (GetChatResp);
   rpc CreateStream(Connect) returns (stream Message);
   rpc BroadcastMessage(Message) returns (Close);
 }
