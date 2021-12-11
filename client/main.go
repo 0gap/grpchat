@@ -35,6 +35,7 @@ func init() {
 	clientChatRooms = make([]ChatRoom, 0)
 	serverPort = flag.Int("p", 50051, "The server port")
 	name = flag.String("u", "panos", "The name of the user sending")
+	selectedChatRoom = ""
 }
 
 func connect(user *lpb.User) error {
@@ -55,6 +56,7 @@ func connect(user *lpb.User) error {
 		id := sha256.Sum256([]byte(timestamp.String() + chatName))
 		clientChatRooms = append(clientChatRooms, ChatRoom{id, chatName})
 		fmt.Println("\t%s", chatName)
+		selectedChatRoom = chatName
 	}
 	fmt.Println("Total rooms: %d", len(clientChatRooms))
 
@@ -85,9 +87,24 @@ func executeCommand(cmdChan chan Command, user *lpb.User) {
 		cmd = <-cmdChan
 		// create channel
 		if cmd.cmdLiteral == "cc" {
+			newChatName := strings.Split(cmd.cmdArg, " ")[0]
+			createReq := &lpb.CreateChatReq{
+				ChatName: newChatName,
+				User:     user,
+			}
+			_, err := client.CreateChatRoom(context.Background(), createReq)
+			if err != nil {
+				log.Printf("Error creating chat room: %v\n", err)
+				break
+			}
+			selectedChatRoom = newChatName
 		}
 		// send msg
 		if cmd.cmdLiteral == "s" {
+			if selectedChatRoom == "" {
+				log.Printf("You need to be in a chat room. Select(sc) or Create(cc) one.")
+				continue
+			}
 			timestamp := time.Now()
 			t := timestamp.String()
 			msg := &lpb.
@@ -141,6 +158,10 @@ func main() {
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
 			content := strings.SplitN(scanner.Text(), " ", 2)
+			if len(content) != 2 {
+				log.Printf("Erroneous command: %v", err)
+				continue
+			}
 			cmd := Command{cmdLiteral: content[0], cmdArg: content[1]}
 			cmdChan <- cmd
 		}
